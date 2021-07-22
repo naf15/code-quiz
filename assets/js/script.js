@@ -18,10 +18,10 @@ Query Selectors:
 
 */
 
-var timeLeft = document.querySelector('#time-left');
-var title = document.querySelector('title-section');
+var timeLeftContent = document.querySelector('#time-left');
+var title = document.querySelector('#title-section');
 var content = document.querySelector('#content');
-var feedback = document.querySelector('#feedback');
+var feedbackContent = document.querySelector('#feedback');
 
 /*=================================
 DATA
@@ -40,6 +40,11 @@ var buttons = {
         submit : "Submit",
         goBack : "Go Back",
         clear : "Clear High Scores"
+};
+
+var feedbackMessage = {
+        correct : "Correct!",
+        wrong : "Wrong!"
 };
 
 var question1 = {
@@ -82,10 +87,45 @@ var questionBank = [
 
 var questionNum = 0;
 var lastQuestionIndex = questionBank.length - 1;
+var timeRemaining = 60;
+var gameOver = false;
 
 /*=================================
 FUNCTIONS
 ==================================*/
+
+function setTime() {
+        // Sets interval in variable
+        setInterval(countDown, 1000);
+        timeLeftContent.textContent = timeRemaining;
+        
+};
+
+function countDown () {
+        timeLeftContent.textContent = timeRemaining;
+        if (gameOver) {
+        }
+        else if (timeRemaining <= 0) {
+                timeRemaining = 0;
+                renderEndGameScreenScreen();
+        } else {
+                timeRemaining--; 
+        };
+}
+
+function timePenalty () {
+        if (timeRemaining - 10 > 0) {
+                timeRemaining -= 10;
+        } else {
+                timeRemaining = 0;
+        }
+}
+
+function clearScreen () {
+        title.innerHTML = '';
+        content.innerHTML = '';
+        feedbackContent.innerHTML = '';
+}
 
 function renderStartScreen () {
                 
@@ -96,10 +136,15 @@ function renderStartScreen () {
         startTitle.textContent = titles.startGame;
         startContent.textContent = gameInstructions;
         startButton.textContent = buttons.start;
+        startButton.setAttribute('id','start-button');
+
+        clearScreen();
 
         title.appendChild(startTitle);
         content.appendChild(startContent);
         content.appendChild(startButton);
+
+        var startButton = document.querySelector('#start-button')
 };
 
  function renderQuestionScreen (questionNum) {
@@ -109,56 +154,97 @@ function renderStartScreen () {
         var choice3 = document.createElement('button');
         var choice4 = document.createElement('button');
         var currQuestion = questionBank[questionNum];
+        var answer = currQuestion.answer;
 
         question.textContent = currQuestion.question;
-        
         choice1.textContent = currQuestion.choice[0];
         choice2.textContent = currQuestion.choice[1];
         choice3.textContent = currQuestion.choice[2];
         choice4.textContent = currQuestion.choice[3];
         
-        title.innerHTML = '';
-        content.innerHTML = '';
+        clearScreen();
 
         title.appendChild(question);
-                
         for (var i=1; i<=4; i++) {
                 content.appendChild(eval(`choice${i}`));
         };     
+        return answer;
 };
 
 function renderAnswerMessage (userChoice, answer) {
-        var line = document.createElement('br');
+        var line = document.createElement('hr');
         var message = document.createElement('p');
 
-
+        feedbackContent.appendChild(line);
+        feedbackContent.appendChild(message);
 
         if (userChoice === answer) {
-
-        }
-}
+                message.textContent = feedbackMessage.correct;
+                
+        } else {
+                message.textContent = feedbackMessage.wrong;
+                timePenalty();
+        };
+};
  
-content.addEventListener('click', function (event) {
-        var element = event.target;
 
-        if (element.matches('button')) {
-                if (element.innerHTML === currQuestion.answer) {
 
-                };
-        }
-})
+function renderEndGameScreenScreen () {
+        var endTitle = document.createElement('h1');
+        var endContent = document.createElement('p');
+        var submitButton = document.createElement('button');
+        
+        gameOver = true;
 
-// function endGameScreenScreen () {
+        endTitle.textContent = titles.endGame;
+        endContent.textContent = `Your final score is ${timeRemaining}.`;
+        submitButton.textContent = buttons.submit;
+        submitButton.setAttribute('id','submit-button');
 
-// };
+        clearScreen();
 
-// function renderHighScoresScreen () {
+        title.appendChild(endTitle);
+        content.appendChild(endContent);
+        content.appendChild(submitButton);
+        
+        
 
-// };
+};
+
+function renderHighScoresScreen () {
+
+};
 
 /*=================================
 INITIALIZATION 
 ==================================*/
 
 renderStartScreen();
-renderQuestionScreen (questionNum);
+
+
+
+
+/*============ 
+Testing Code
+ =============*/
+
+
+ content.addEventListener('click', function (event) {
+        var element = event.target;
+
+        if (element.matches('button')) {
+                if (element.innerHTML === buttons.start) {
+                        setTime();
+                        renderQuestionScreen(questionNum);
+                }
+                else if (questionNum < lastQuestionIndex) {
+                        questionNum++;
+                        var answer = renderQuestionScreen(questionNum);
+                        renderAnswerMessage(element.innerHTML,answer)
+                } else {
+                        renderEndGameScreenScreen();
+                        renderAnswerMessage(element.innerHTML,answer)
+                };
+                
+        };
+});
