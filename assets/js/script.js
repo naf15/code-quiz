@@ -89,6 +89,9 @@ var questionNum = 0;
 var lastQuestionIndex = questionBank.length - 1;
 var timeRemaining = 60;
 var gameOver = false;
+var lastAnswer, currAnswer;
+
+
 
 /*=================================
 FUNCTIONS
@@ -104,10 +107,11 @@ function setTime() {
 function countDown () {
         timeLeftContent.textContent = timeRemaining;
         if (gameOver) {
+                return;
         }
         else if (timeRemaining <= 0) {
                 timeRemaining = 0;
-                renderEndGameScreenScreen();
+                renderEndGameScreen();
         } else {
                 timeRemaining--; 
         };
@@ -131,6 +135,7 @@ function renderStartScreen () {
                 
         var startTitle = document.createElement('h1');
         var startContent = document.createElement('p');
+        var buttonDiv = document.createElement('div');
         var startButton = document.createElement('button');
         
         startTitle.textContent = titles.startGame;
@@ -142,9 +147,10 @@ function renderStartScreen () {
 
         title.appendChild(startTitle);
         content.appendChild(startContent);
-        content.appendChild(startButton);
+        content.appendChild(buttonDiv);
+        buttonDiv.appendChild(startButton);
 
-        var startButton = document.querySelector('#start-button')
+        var startButton = document.querySelector('#start-button');
 };
 
  function renderQuestionScreen (questionNum) {
@@ -168,10 +174,16 @@ function renderStartScreen () {
         for (var i=1; i<=4; i++) {
                 content.appendChild(eval(`choice${i}`));
         };     
+        
+        console.log('renderQuestion answer ' + answer)
+        
         return answer;
 };
 
 function renderAnswerMessage (userChoice, answer) {
+        
+        feedbackContent.innerHTML = ''; // added
+
         var line = document.createElement('hr');
         var message = document.createElement('p');
 
@@ -179,41 +191,117 @@ function renderAnswerMessage (userChoice, answer) {
         feedbackContent.appendChild(message);
 
         if (userChoice === answer) {
+                console.log('correct')
                 message.textContent = feedbackMessage.correct;
+                message.setAttribute('id','correct');
                 
         } else {
+                console.log('wrong')
+                console.log('user choice: ' + userChoice)
+                console.log('answer: ' + answer)
+
                 message.textContent = feedbackMessage.wrong;
+                message.setAttribute('id','wrong');
+
                 timePenalty();
         };
+        setTimeout(function() {message.textContent = ' '; }, 2000);
 };
  
 
 
-function renderEndGameScreenScreen () {
+function renderEndGameScreen () {
         var endTitle = document.createElement('h1');
         var endContent = document.createElement('p');
+        var highScoreDiv = document.createElement('div');
+        var initialInput = document.createElement('input');
         var submitButton = document.createElement('button');
         
         gameOver = true;
 
         endTitle.textContent = titles.endGame;
-        endContent.textContent = `Your final score is ${timeRemaining}.`;
+        endContent.textContent = `Your final score is ${timeRemaining}. \n Enter your initials below:`;
+        initialInput.textContent = 'Your initials here';
         submitButton.textContent = buttons.submit;
+        
+        //initialsDiv.setAttribute('id', 'initials-form');
         submitButton.setAttribute('id','submit-button');
+        initialInput.setAttribute('name','initials');
 
-        clearScreen();
+        title.innerHTML = '';
+        content.innerHTML = '';
 
         title.appendChild(endTitle);
         content.appendChild(endContent);
-        content.appendChild(submitButton);
-        
-        
+        content.appendChild(highScoreDiv);
+        highScoreDiv.appendChild(initialInput);
+        highScoreDiv.appendChild(submitButton);
+           
+        submitButton.addEventListener('click', function () {
+                var highScore = {
+                        initials: initialInput.value,
+                        score: timeRemaining,
+                };
+                var highScores = JSON.parse(localStorage.getItem('highScores'));
+                
+                if (!highScores) {
+                        highScores = [];
+                };
+                
+                console.dir(highScores);
+                highScores.push(highScore);
+                localStorage.setItem('highScores', JSON.stringify(highScores));
+        );
 
 };
 
 function renderHighScoresScreen () {
+        clearScreen();
+        var endTitle = document.createElement('h1');
+        var highScoreDiv = document.createElement('div');
+        var buttonDiv = document.createElement('div');
+        var highScoresTable = document.createElement('table');
+        var goBackButton = document.createElement('button');
+        var clearHighScoresButton = document.createElement('button');
 
+        highScoreDiv.setAttribute('id', 'high-scores-table');
+        var highScores = JSON.parse(localStorage.getItem("highScores")); // get this globally and updated down here
+
+        for (var i=0; i<highScores.length; i++) {
+                var newRow = document.createElement('tr');
+                var newName = document.createElement('td');
+                var newScore = document.createElement('td');
+                
+                newName.textContent = highScores[i].initials;
+                newScore.textContent = highScores[i].score;
+
+                newRow.appendChild(newName);
+                newRow.appendChild(newScore);
+                highScoresTable.appendChild(newRow);
+        }
+
+        endTitle.textContent = titles.highScores;
+        // JSON.parse(localStorage.getItem("highScore")).initials;
+        console.log(JSON.parse(localStorage.getItem("highScore")));
+        goBackButton.textContent = buttons.goBack;
+        clearHighScoresButton.textContent = buttons.clear;
+
+        title.appendChild(endTitle);
+        highScoreDiv.appendChild(highScoresTable);
+        buttonDiv.appendChild(goBackButton);
+        buttonDiv.appendChild(clearHighScoresButton);
+        content.appendChild(highScoreDiv);
+        content.appendChild(buttonDiv)
 };
+
+function saveHighScore() {
+        // Save related form data as an object
+               
+        
+}
+
+
+
 
 /*=================================
 INITIALIZATION 
@@ -223,28 +311,29 @@ renderStartScreen();
 
 
 
-
-/*============ 
-Testing Code
- =============*/
-
-
- content.addEventListener('click', function (event) {
+content.addEventListener('click', function (event) {
         var element = event.target;
 
         if (element.matches('button')) {
                 if (element.innerHTML === buttons.start) {
                         setTime();
-                        renderQuestionScreen(questionNum);
-                }
-                else if (questionNum < lastQuestionIndex) {
-                        questionNum++;
-                        var answer = renderQuestionScreen(questionNum);
-                        renderAnswerMessage(element.innerHTML,answer)
+                        lastAnswer = renderQuestionScreen(questionNum);
+                } else if (questionNum < lastQuestionIndex) {
+                        questionNum++;                
+                        currAnswer = renderQuestionScreen(questionNum);
+                        renderAnswerMessage(element.innerHTML, lastAnswer); 
+                        lastAnswer = currAnswer;
+                                 
+                } else if (element.innerHTML != buttons.submit) {
+                        renderAnswerMessage(element.innerHTML,lastAnswer);
+                        renderEndGameScreen();
                 } else {
-                        renderEndGameScreenScreen();
-                        renderAnswerMessage(element.innerHTML,answer)
+                        renderHighScoresScreen();
                 };
-                
         };
 });
+
+
+// .value from form submitted 
+
+
