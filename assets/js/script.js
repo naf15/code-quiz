@@ -131,8 +131,7 @@ function clearScreen () {
         feedbackContent.innerHTML = '';
 }
 
-function renderStartScreen () {
-                
+function renderStartScreen () {          
         var startTitle = document.createElement('h1');
         var startContent = document.createElement('p');
         var buttonDiv = document.createElement('div');
@@ -180,9 +179,8 @@ function renderStartScreen () {
         return answer;
 };
 
-function renderAnswerMessage (userChoice, answer) {
-        
-        feedbackContent.innerHTML = ''; // added
+function renderAnswerMessage (userChoice, answer) {   
+        feedbackContent.innerHTML = ''; 
 
         var line = document.createElement('hr');
         var message = document.createElement('p');
@@ -296,8 +294,6 @@ function renderHighScoresScreen () {
 
 function saveHighScore() {
         // Save related form data as an object
-               
-        
 }
 
 
@@ -308,8 +304,6 @@ INITIALIZATION
 ==================================*/
 
 renderStartScreen();
-
-
 
 content.addEventListener('click', function (event) {
         var element = event.target;
@@ -334,6 +328,5 @@ content.addEventListener('click', function (event) {
 });
 
 
-// .value from form submitted 
 
 
