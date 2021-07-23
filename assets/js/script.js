@@ -249,7 +249,7 @@ function renderEndGameScreen () {
                 console.dir(highScores);
                 highScores.push(highScore);
                 localStorage.setItem('highScores', JSON.stringify(highScores));
-        );
+        });
 
 };
 
