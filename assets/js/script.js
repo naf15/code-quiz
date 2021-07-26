@@ -22,6 +22,7 @@ var timeLeftContent = document.querySelector('#time-left');
 var title = document.querySelector('#title-section');
 var content = document.querySelector('#content');
 var feedbackContent = document.querySelector('#feedback');
+var highScoreLink = document.querySelector('#high-scores')
 
 /*=================================
 DATA
@@ -100,8 +101,7 @@ FUNCTIONS
 function setTime() {
         // Sets interval in variable
         setInterval(countDown, 1000);
-        timeLeftContent.textContent = timeRemaining;
-        
+        timeLeftContent.textContent = timeRemaining;       
 };
 
 function countDown () {
@@ -115,23 +115,28 @@ function countDown () {
         } else {
                 timeRemaining--; 
         };
-}
+};
 
 function timePenalty () {
         if (timeRemaining - 10 > 0) {
                 timeRemaining -= 10;
         } else {
                 timeRemaining = 0;
-        }
-}
+        };
+};
 
 function clearScreen () {
         title.innerHTML = '';
         content.innerHTML = '';
         feedbackContent.innerHTML = '';
-}
+};
 
 function renderStartScreen () {          
+        
+        questionNum = 0;
+        timeRemaining = 60;
+        gameOver = false;
+        
         var startTitle = document.createElement('h1');
         var startContent = document.createElement('p');
         var buttonDiv = document.createElement('div');
@@ -174,7 +179,7 @@ function renderStartScreen () {
                 content.appendChild(eval(`choice${i}`));
         };     
         
-        console.log('renderQuestion answer ' + answer)
+        // console.log('renderQuestion answer ' + answer)
         
         return answer;
 };
@@ -246,7 +251,7 @@ function renderEndGameScreen () {
                         highScores = [];
                 };
                 
-                console.dir(highScores);
+                // console.dir(highScores);
                 highScores.push(highScore);
                 localStorage.setItem('highScores', JSON.stringify(highScores));
         });
@@ -280,7 +285,7 @@ function renderHighScoresScreen () {
 
         endTitle.textContent = titles.highScores;
         // JSON.parse(localStorage.getItem("highScore")).initials;
-        console.log(JSON.parse(localStorage.getItem("highScore")));
+        // console.log(JSON.parse(localStorage.getItem("highScore")));
         goBackButton.textContent = buttons.goBack;
         clearHighScoresButton.textContent = buttons.clear;
 
@@ -289,11 +294,13 @@ function renderHighScoresScreen () {
         buttonDiv.appendChild(goBackButton);
         buttonDiv.appendChild(clearHighScoresButton);
         content.appendChild(highScoreDiv);
-        content.appendChild(buttonDiv)
+        content.appendChild(buttonDiv);
+
 };
 
-function saveHighScore() {
+function clearHighScore() {
         // Save related form data as an object
+        localStorage.setItem('highScores', JSON.stringify([]));
 }
 
 
@@ -307,19 +314,26 @@ renderStartScreen();
 
 content.addEventListener('click', function (event) {
         var element = event.target;
+        var buttonType = element.innerHTML;
 
         if (element.matches('button')) {
-                if (element.innerHTML === buttons.start) {
+                if (buttonType === buttons.start) {
                         setTime();
                         lastAnswer = renderQuestionScreen(questionNum);
+                } else if (buttonType === buttons.goBack){
+                        renderStartScreen();       
+                } else if (buttonType === buttons.clear){
+                        event.preventDefault();
+                        clearHighScore();
+                        renderHighScoresScreen();
                 } else if (questionNum < lastQuestionIndex) {
                         questionNum++;                
                         currAnswer = renderQuestionScreen(questionNum);
-                        renderAnswerMessage(element.innerHTML, lastAnswer); 
+                        renderAnswerMessage(buttonType, lastAnswer); 
                         lastAnswer = currAnswer;
                                  
-                } else if (element.innerHTML != buttons.submit) {
-                        renderAnswerMessage(element.innerHTML,lastAnswer);
+                } else if (buttonType != buttons.submit) {
+                        renderAnswerMessage(buttonType, lastAnswer);
                         renderEndGameScreen();
                 } else {
                         renderHighScoresScreen();
@@ -327,6 +341,6 @@ content.addEventListener('click', function (event) {
         };
 });
 
-
-
-
+highScoreLink.addEventListener('click', function () {
+        renderHighScoresScreen()
+});
