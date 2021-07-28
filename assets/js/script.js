@@ -98,10 +98,9 @@ var lastAnswer, currAnswer;
 FUNCTIONS
 ==================================*/
 
-function setTime() {
+var setTime = function () {
         // Sets interval in variable
-        setInterval(countDown, 1000);
-        timeLeftContent.textContent = timeRemaining;       
+        setInterval(countDown, 1000);     
 };
 
 function countDown () {
@@ -135,13 +134,13 @@ function renderStartScreen () {
         
         questionNum = 0;
         timeRemaining = 60;
-        gameOver = false;
-        
+                
         var startTitle = document.createElement('h1');
         var startContent = document.createElement('p');
         var buttonDiv = document.createElement('div');
         var startButton = document.createElement('button');
         
+        timeLeftContent.textContent = timeRemaining;  
         startTitle.textContent = titles.startGame;
         startContent.textContent = gameInstructions;
         startButton.textContent = buttons.start;
@@ -221,6 +220,7 @@ function renderEndGameScreen () {
         var submitButton = document.createElement('button');
         
         gameOver = true;
+        clearInterval(setTime);
 
         endTitle.textContent = titles.endGame;
         endContent.textContent = `Your final score is ${timeRemaining}. \n Enter your initials below:`;
@@ -319,6 +319,7 @@ content.addEventListener('click', function (event) {
         if (element.matches('button')) {
                 if (buttonType === buttons.start) {
                         setTime();
+                        gameOver = false;
                         lastAnswer = renderQuestionScreen(questionNum);
                 } else if (buttonType === buttons.goBack){
                         renderStartScreen();       
